@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fergus Ross — Welcome</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600&family=Tiny5+Duo&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="page">
+  <div id="stage">
+
+    <!-- scene (underneath) -->
+    <video id="bg-video" autoplay loop muted playsinline>
+      <source src="https://res.cloudinary.com/daklr2whx/video/upload/v1776960333/a_kitten_drinks_202604231827_apoc3w.mp4" type="video/mp4" />
+    </video>
+    <div id="bg-tint"></div>
+
+    <div id="brand">
+      <svg viewBox="0 10 350 72" preserveAspectRatio="xMinYMax meet">
+        <text x="-3" y="80" font-family="'Instrument Serif', serif" fill="#FDFFB7">
+          <tspan font-size="90">Welcome</tspan>
+        </text>
+      </svg>
+    </div>
+
+    <div id="white-layer">
+      <div id="white-fill"></div>
+      <div id="orbit-stage">
+        <div id="orbit-wrap">
+          <div id="orbit-scaler">
+            <div id="orbit-rot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <div id="svc-center" class="ovl-copy">
+        <div class="line1 font-serif">
+          <span class="m">S</span><span class="rest">elect Your Service</span>
+        </div>
+        <span class="embrace">embrace</span>
+      </div>
+
+      <div id="block-2k26" class="ovl-copy font-serif">
+        <span class="big">2K26</span>
+        <span class="smallcaps">JOIN AN EXCLUSIVE<br />COMMUNITY</span>
+      </div>
+
+      <div id="block-0651" class="ovl-copy font-serif">
+        <span class="big">- Fergus Ross</span>
+      </div>
+
+      <div id="block-cta">
+        <p class="ovl-copy font-serif smallcaps">Join our newsletter</p>
+        <div class="ovl-copy cta-row">
+          <button class="cta-btn">Join</button>
+          <button class="cta-arrow" aria-label="Go">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <header id="site-header">
+      <div class="brand">
+        <span class="name">Welcome</span>
+      </div>
+      <button id="menu-btn" aria-label="Menu">
+        <div class="pill"></div>
+        <svg style="position:relative;z-index:10" width="24" height="10" viewBox="0 0 24 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 1H23M1 9H23" stroke="white" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- hero (on top, dissolves away on scroll) -->
+    <div id="hero">
+      <video id="hero-video" autoplay muted loop playsinline preload="auto">
+        <source src="https://stream.mux.com/ApO00r007DXi71z9CAupVXgDg01j02vcTdvG8ViskrObuVk.mp4" type="video/mp4" />
+      </video>
+      <div id="hero-hint">Scroll</div>
+      <h1 id="hero-headline">Fergus Ross</h1>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>
