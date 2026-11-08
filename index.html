@@ -11,7 +11,162 @@
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 
-<link rel="stylesheet" href="css/style.css" />
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; font-family: 'Manrope', sans-serif; overflow-x: hidden; }
+  .font-serif { font-family: 'Instrument Serif', serif; }
+
+  /* one continuous page: a single sticky stage, 700vh of scroll */
+  #page { position: relative; height: 700vh; background: #000; }
+  #stage {
+    position: sticky; top: 0; width: 100%; height: 100vh;
+    overflow: hidden; color: #fff; background: #000;
+  }
+
+  /* ---------- SCENE layers (underneath) ---------- */
+  #bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+  #bg-tint { position: absolute; inset: 0; background: rgba(0,0,0,0.1); z-index: 0; }
+
+  #brand { position: absolute; z-index: 10; left: 3vw; bottom: 3vw; width: 80vw; }
+  #brand svg { width: 100%; height: auto; overflow: visible; display: block; filter: drop-shadow(0 20px 30px rgba(0,0,0,.35)); }
+
+  #white-layer {
+    position: absolute; z-index: 20;
+    width: 150vw; height: 150vh; left: -25vw; top: -25vh;
+    transform: rotate(-15deg); overflow: hidden;
+    will-change: clip-path;
+  }
+  #white-fill { position: absolute; inset: 0; background: #fff; }
+
+  #orbit-stage {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(15deg);
+  }
+  #orbit-wrap { position: relative; width: 90vw; max-width: 1200px; aspect-ratio: 1 / 1; }
+  #orbit-scaler {
+    position: absolute; left: 50%; top: 50%; width: 800px; height: 800px;
+    transform-origin: center center; will-change: transform;
+  }
+  #orbit-rot { position: relative; width: 100%; height: 100%; will-change: transform; }
+
+  .orbit-item {
+    position: absolute; will-change: transform;
+    user-select: none; pointer-events: auto;
+    offset-rotate: 0deg; offset-anchor: center center;
+  }
+  .orbit-item img {
+    width: 100%; height: 100%; object-fit: contain; border-radius: 50%;
+    display: block; cursor: pointer; transition: transform .3s ease;
+  }
+  .orbit-item img:hover { transform: scale(1.2); }
+  .orbit-counter { width: 100%; height: 100%; will-change: transform; }
+
+  #overlay { position: absolute; inset: 0; z-index: 60; pointer-events: none; }
+  .ovl-copy { will-change: transform, opacity, filter; }
+
+  #svc-center {
+    position: absolute; top: 48%; left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center;
+    white-space: nowrap; pointer-events: auto;
+  }
+  #svc-center .line1 { display: flex; align-items: baseline; line-height: 1; margin-bottom: 4px; }
+  #svc-center .m { font-size: 55px; font-style: italic; letter-spacing: -0.02em; color: #000; }
+  #svc-center .rest { font-size: 55px; letter-spacing: -0.02em; color: #000; }
+  #svc-center .embrace { font-size: 36px; letter-spacing: -0.02em; color: #000; margin-top: -5px; }
+
+  #block-2k26 {
+    position: absolute; top: 8rem; right: 214px;
+    display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+    pointer-events: auto; color: #000;
+  }
+  #block-2k26 .big { font-size: 40px; line-height: 1; margin-bottom: 12px; }
+  .smallcaps { font-size: 16px; text-transform: uppercase; letter-spacing: .12em; line-height: 20px; }
+
+  #block-0651 {
+    position: absolute; bottom: 4rem; left: 4rem;
+    display: flex; flex-direction: column; align-items: flex-start;
+    pointer-events: auto; color: #000;
+  }
+  #block-0651 .big { font-size: 40px; line-height: 1; margin-bottom: 4px; }
+
+  #block-cta { position: absolute; bottom: 4rem; right: 10vw; display: flex; flex-direction: column; align-items: flex-start; pointer-events: auto; }
+  #block-cta p { width: 240px; text-align: left; margin-bottom: 24px; color: #000; }
+  .cta-row { display: flex; align-items: center; }
+  .cta-btn {
+    background: #000; color: #fff; border: none; cursor: pointer;
+    border-radius: 40px; padding: 14px 32px;
+    font-family: 'Instrument Serif', serif; letter-spacing: .1em; text-transform: uppercase;
+    font-size: 14px; position: relative; z-index: 10; transition: background .2s ease;
+  }
+  .cta-btn:hover { background: rgba(0,0,0,.9); }
+  .cta-arrow {
+    background: #000; color: #fff; border: none; cursor: pointer;
+    width: 46px; height: 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-left: -8px; transition: background .2s ease;
+  }
+
+  #site-header {
+    position: absolute; top: 0; left: 0; width: 100%;
+    padding: 40px; display: flex; justify-content: space-between; align-items: flex-start;
+    z-index: 70; pointer-events: none;
+    will-change: transform, opacity, filter;
+  }
+  #site-header .brand { display: flex; align-items: flex-start; color: #000; line-height: 1; pointer-events: auto; user-select: none; }
+  #site-header .brand .name { font-size: 40px; font-family: 'Instrument Serif', serif; }
+  #menu-btn {
+    position: relative; width: 72px; height: 44px; border: none; background: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; pointer-events: auto;
+    transition: transform .3s ease;
+  }
+  #menu-btn:hover { transform: scale(1.05); }
+  #menu-btn .pill { position: absolute; inset: 0; background: #000; border-radius: 50%; transform: rotate(-15deg); }
+
+  /* ---------- HERO layer (on top, dissolves away) ---------- */
+  #hero { position: absolute; inset: 0; z-index: 200; will-change: opacity, transform; }
+  #hero-video {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    -webkit-mask-image: radial-gradient(135% 135% at 50% 50%, #000 62%, transparent 90%);
+            mask-image: radial-gradient(135% 135% at 50% 50%, #000 62%, transparent 90%);
+    will-change: mask-image, -webkit-mask-image;
+  }
+  #hero::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: 0; height: 50%;
+    background: linear-gradient(to bottom,
+      rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 35%,
+      rgba(0,0,0,0.6) 65%, #000 100%);
+    pointer-events: none;
+  }
+  #hero-headline {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+    padding: 0 24px 32px;
+    font-family: "Tiny5 Duo", monospace;
+    font-size: 140px; line-height: 0.9; letter-spacing: 0.02em;
+    color: #fff; pointer-events: none;
+  }
+  #hero-hint {
+    position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+    z-index: 2; color: rgba(255,255,255,.75);
+    font-size: 12px; letter-spacing: .35em; text-transform: uppercase;
+    font-weight: 300; pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    #hero-headline { font-size: 64px; padding: 0 16px 20px; }
+    #svc-center .m, #svc-center .rest { font-size: 45px; }
+    #svc-center .embrace { font-size: 28px; }
+    #block-2k26 { right: calc(6vw + 150px); }
+    #block-0651 { bottom: 2rem; left: 2rem; }
+    #block-cta { bottom: 2rem; right: 6vw; }
+    #block-cta p { font-size: 12px; width: 200px; }
+    .cta-btn { font-size: 12px; }
+    #site-header { padding: 24px; }
+  }
+
+</style>
 </head>
 <body>
 
@@ -95,6 +250,253 @@
   </div>
 </div>
 
-<script src="js/main.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Mux hero video: HLS when possible ---------- */
+  (function () {
+    var PLAYBACK_ID = "ApO00r007DXi71z9CAupVXgDg01j02vcTdvG8ViskrObuVk";
+    var video = document.getElementById('hero-video');
+    function play() { var p = video.play(); if (p && p.catch) p.catch(function () {}); }
+    if (window.Hls && window.Hls.isSupported()) {
+      var hls = new window.Hls({ enableWorker: true });
+      hls.loadSource("https://stream.mux.com/" + PLAYBACK_ID + ".m3u8");
+      hls.attachMedia(video);
+      hls.on(window.Hls.Events.MANIFEST_PARSED, play);
+      hls.on(window.Hls.Events.ERROR, function (_, data) {
+        if (data.fatal) {
+          hls.destroy();
+          video.removeAttribute('src');
+          video.load();
+          play();
+        }
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = "https://stream.mux.com/" + PLAYBACK_ID + ".m3u8";
+      play();
+    }
+  })();
+
+  /* ---------- Orbit scene ---------- */
+  var IMAGES = [
+    "https://res.cloudinary.com/daklr2whx/image/upload/v1776966860/202604232047_gxyqne.jpg",
+    "https://res.cloudinary.com/daklr2whx/image/upload/v1776966856/202604232052_ihyslg.jpg",
+    "https://res.cloudinary.com/daklr2whx/image/upload/v1776966299/15112343_tuzrbg.jpg",
+    "https://res.cloudinary.com/daklr2whx/image/upload/v1776966299/202604232043_vhb6u9.jpg",
+    "https://res.cloudinary.com/daklr2whx/image/upload/v1776967124/02604232058_nh1qd1.jpg",
+    "https://res.cloudinary.com/daklr2whx/image/upload/v1776967611/202604232105_lv3fhp.jpg"
+  ];
+
+  var BASE = 800, CX = BASE / 2, CY = BASE / 2;
+  var TOTAL = IMAGES.length;
+
+  var page = document.getElementById('page');
+  var hero = document.getElementById('hero');
+  var heroVideo = document.getElementById('hero-video');
+  var whiteLayer = document.getElementById('white-layer');
+  var rot = document.getElementById('orbit-rot');
+  var scaler = document.getElementById('orbit-scaler');
+  var orbitWrap = document.getElementById('orbit-wrap');
+  var copyEls = Array.prototype.slice.call(document.querySelectorAll('.ovl-copy'));
+  var header = document.getElementById('site-header');
+
+  var items = IMAGES.map(function (src, i) {
+    var item = document.createElement('div');
+    item.className = 'orbit-item';
+    var counter = document.createElement('div');
+    counter.className = 'orbit-counter';
+    var img = document.createElement('img');
+    img.src = src;
+    img.alt = 'Orbiting image ' + (i + 1);
+    img.draggable = false;
+    counter.appendChild(img);
+    item.appendChild(counter);
+    rot.appendChild(item);
+    return item;
+  });
+
+  function ellipsePath(rx, ry) {
+    return 'M ' + (CX - rx) + ' ' + CY +
+      ' A ' + rx + ' ' + ry + ' 0 1 0 ' + (CX + rx) + ' ' + CY +
+      ' A ' + rx + ' ' + ry + ' 0 1 0 ' + (CX - rx) + ' ' + CY;
+  }
+
+  function kf(keys, vals, p) {
+    if (p <= keys[0]) return vals[0];
+    for (var i = 0; i < keys.length - 1; i++) {
+      if (p <= keys[i + 1]) {
+        var t = (p - keys[i]) / (keys[i + 1] - keys[i]);
+        return vals[i] + (vals[i + 1] - vals[i]) * t;
+      }
+    }
+    return vals[vals.length - 1];
+  }
+
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+
+  // Scene begins once the hero has dissolved (P0 of total page progress)
+  var P0 = 0.14;
+
+  var K_CLIP = [0, 0.08, 1],       V_CLIP = [0, 55, 55];
+  var K_TEXT = [0.03, 0.08, 0.15, 0.22, 0.90, 0.98, 1];
+  var V_OP   = [0, 1, 1, 0, 0, 1, 1];
+  var V_BLUR = [15, 0, 0, 15, 15, 0, 0];
+  var V_Y    = [20, 0, 0, 20, 20, 0, 0];
+  var K_ORBIT = [0.15, 0.25, 0.85, 0.95, 1];
+  var V_SIZE  = [80, 520, 520, 80, 80];
+  var V_RX    = [330, 650, 650, 330, 330];
+  var V_RY    = [140, 650, 650, 140, 140];
+  var V_ROT   = [-15, 0, 0, -15, -15];
+  var V_TX    = [0, -650, -650, 0, 0];
+  var V_FOCUS = [0, 1, 1, 0, 0];
+
+  var orbitProgress = 0;
+  var prevQ = 0;
+  var lastTime = null;
+
+  // ---- scroll lock state ----
+  var scrollable = page.offsetHeight - window.innerHeight;
+  var lockP = P0 + 0.12 * (1 - P0);        // "Select Your Service" fully visible
+  var lockPx = lockP * scrollable;
+  var settleFrames = 0;
+  var lastY = window.scrollY;
+  var isSnapping = false;
+  var snapTarget = 0;
+
+  function cancelSnap() { isSnapping = false; settleFrames = 0; }
+  window.addEventListener('wheel', cancelSnap, { passive: true });
+  window.addEventListener('touchstart', cancelSnap, { passive: true });
+  window.addEventListener('keydown', cancelSnap);
+  window.addEventListener('resize', function () {
+    scrollable = page.offsetHeight - window.innerHeight;
+    lockPx = lockP * scrollable;
+    cancelSnap();
+  });
+
+  function snapTo(target) {
+    isSnapping = true;
+    snapTarget = target;
+    settleFrames = 0;
+    window.scrollTo({ top: target, behavior: 'smooth' });
+  }
+
+  function render(time) {
+    if (lastTime === null) lastTime = time;
+    var delta = time - lastTime;
+    lastTime = time;
+
+    var vh = window.innerHeight;
+    var yNow = window.scrollY;
+
+    // one unified progress value for the whole page
+    var p = clamp(yNow / scrollable, 0, 1);
+
+    // ---- hero phase: dissolve the video into the scene (cross-fade) ----
+    var heroP = clamp(p / 0.16, 0, 1);
+    var fade = 1 - clamp((p - 0.07) / 0.09, 0, 1);
+    hero.style.opacity = fade;
+    hero.style.transform = 'translateY(' + (heroP * -4) + 'vh) scale(' + (1 - heroP * 0.04) + ')';
+    hero.style.visibility = fade <= 0 ? 'hidden' : 'visible';
+    var inner = 62 - heroP * 34;
+    var outer = 90 - heroP * 8;
+    var mask = 'radial-gradient(135% 135% at 50% 50%, #000 ' + inner + '%, transparent ' + outer + '%)';
+    heroVideo.style.webkitMaskImage = mask;
+    heroVideo.style.maskImage = mask;
+    if (fade <= 0 && !heroVideo.paused) heroVideo.pause();
+    else if (fade > 0 && heroVideo.paused) { var pr = heroVideo.play(); if (pr && pr.catch) pr.catch(function () {}); }
+
+    // ---- scene progress ----
+    var q = clamp((p - P0) / (1 - P0), 0, 1);
+    var scrollDelta = q - prevQ;
+    prevQ = q;
+
+    var rx = kf(K_CLIP, V_CLIP, q);
+    var ry = kf(K_CLIP, V_CLIP, q);
+    whiteLayer.style.clipPath = 'ellipse(' + rx + '% ' + ry + '% at 50% 50%)';
+
+    var frameSpeed;
+    if (q > 0.15 && q < 0.85) frameSpeed = scrollDelta * 200;
+    else frameSpeed = (delta / 1000) * 2.5;
+    orbitProgress += frameSpeed;
+
+    var oRx = kf(K_ORBIT, V_RX, q);
+    var oRy = kf(K_ORBIT, V_RY, q);
+    var oRot = kf(K_ORBIT, V_ROT, q);
+    var oTx = kf(K_ORBIT, V_TX, q);
+    var oSize = kf(K_ORBIT, V_SIZE, q);
+    var strength = kf(K_ORBIT, V_FOCUS, q);
+
+    var path = ellipsePath(oRx, oRy);
+    var scale = orbitWrap.clientWidth / BASE;
+    scaler.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+    rot.style.transform = 'translateX(' + oTx + 'px) rotate(' + oRot + 'deg)';
+
+    items.forEach(function (item, i) {
+      var offset = ((orbitProgress + (i / TOTAL) * 100) % 100 + 100) % 100;
+      var dist = Math.abs(offset - 50);
+      if (dist > 50) dist = 100 - dist;
+      var target;
+      if (dist < 20) {
+        var ratio = dist / 20;
+        target = 0.4 + (((Math.cos(ratio * Math.PI) + 1) / 2) * 0.6);
+      } else {
+        target = 0.4;
+      }
+      var s = 1 - strength * (1 - target);
+
+      item.style.width = oSize + 'px';
+      item.style.height = oSize + 'px';
+      item.style.offsetPath = 'path("' + path + '")';
+      item.style.offsetDistance = offset + '%';
+      item.style.transform = 'scale(' + s + ')';
+      item.style.zIndex = Math.round(s * 100);
+      item.firstChild.style.transform = 'rotate(' + (-oRot) + 'deg)';
+    });
+
+    // copy choreography
+    var op = kf(K_TEXT, V_OP, q);
+    var bl = kf(K_TEXT, V_BLUR, q);
+    var yv = kf(K_TEXT, V_Y, q);
+    var filter = 'blur(' + bl + 'px)';
+
+    copyEls.forEach(function (el) {
+      el.style.opacity = op;
+      el.style.filter = filter;
+      if (el.id === 'svc-center') {
+        el.style.transform = 'translate(-50%, calc(-50% + ' + yv + 'px))';
+      } else {
+        el.style.transform = 'translateY(' + yv + 'px)';
+      }
+    });
+
+    header.style.opacity = op;
+    header.style.filter = filter;
+
+    // ---- scroll lock: settle onto a section, never hover mid-transition ----
+    if (Math.abs(yNow - lastY) > 1 || isSnapping) {
+      settleFrames = 0;
+    } else {
+      settleFrames++;
+    }
+    lastY = yNow;
+    if (isSnapping && Math.abs(yNow - snapTarget) <= 2) isSnapping = false;
+    if (!isSnapping && settleFrames > 8) {
+      var dScene = Math.abs(yNow - lockPx);
+      var dTop = yNow;
+      if (dScene < vh * 0.35 && dScene < dTop) {
+        snapTo(lockPx);
+      } else if (dTop < vh * 0.35 && dTop <= dScene) {
+        snapTo(0);
+      }
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
+})();
+
+</script>
 </body>
 </html>
